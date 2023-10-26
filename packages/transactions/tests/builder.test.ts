@@ -78,12 +78,19 @@ import {
   pubKeyfromPrivKey,
   publicKeyToString,
 } from '../src/keys';
-import { createTokenTransferPayload, serializePayload, TokenTransferPayload } from '../src/payload';
+import {
+  createTenureChangePayload,
+  createTokenTransferPayload,
+  deserializePayload,
+  serializePayload,
+  TenureChangeCause,
+  TokenTransferPayload,
+} from '../src/payload';
 import { createAssetInfo } from '../src/postcondition-types';
 import { createTransactionAuthField } from '../src/signature';
 import { TransactionSigner } from '../src/signer';
 import { deserializeTransaction, StacksTransaction } from '../src/transaction';
-import { cloneDeep } from '../src/utils';
+import { cloneDeep, randomBytes } from '../src/utils';
 
 function setSignature(
   unsignedTransaction: StacksTransaction,
@@ -2143,4 +2150,27 @@ test('Get contract map entry - no match', async () => {
   expect(fetchMock.mock.calls.length).toEqual(1);
   expect(result).toEqual(mockResult);
   expect(result.type).toBe(ClarityType.OptionalNone);
+});
+
+test('serialize/deserialize tenure change payload', () => {
+  const previousTenureEnd = bytesToHex(randomBytes(32));
+  const previousTenureBlocks = 100;
+  const cause = TenureChangeCause.NullMiner;
+  const publicKeyHash = bytesToHex(randomBytes(20));
+  const signature = bytesToHex(randomBytes(65));
+  const signers = bytesToHex(randomBytes(21));
+
+  const payload = createTenureChangePayload(
+    previousTenureEnd,
+    previousTenureBlocks,
+    cause,
+    publicKeyHash,
+    signature,
+    signers
+  );
+
+  const serialized = serializePayload(payload);
+  const reader = new BytesReader(serialized);
+
+  expect(deserializePayload(reader)).toEqual(payload);
 });
