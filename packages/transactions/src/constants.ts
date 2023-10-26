@@ -47,6 +47,7 @@ enum PayloadType {
   PoisonMicroblock = 0x03,
   Coinbase = 0x04,
   CoinbaseToAltRecipient = 0x05,
+  TenureChange = 0x7,
 }
 
 enum ClarityVersion {
